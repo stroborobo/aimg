@@ -23,7 +23,9 @@ func (b *Block) String() string {
 	ret := fmt.Sprintf("\033[48;5;%dm", b.bottom.Code)
 	if b.top != nil {
 		ret += fmt.Sprintf("\033[38;5;%dm", b.top.Code)
-		if strings.Contains(os.Getenv("LC_ALL"), "UTF-8") {
+		// If it's not a UTF-8 terminal, fall back to '#'
+		if strings.Contains(os.Getenv("LANG"), "UTF-8") ||
+		   strings.Contains(os.Getenv("LC_ALL"), "UTF-8") {
 			ret += "\u2580"
 		} else {
 			ret += "#"
