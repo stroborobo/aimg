@@ -1,7 +1,7 @@
 aimg
 ====
 
-An image to ANSI color coded text converter.\
+An image to ANSI color coded text converter.  
 aimg uses unicode UPPER HALF BLOCK to archieve twice the pixels (tm) per character.
 
 Usage
