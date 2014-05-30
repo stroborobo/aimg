@@ -93,6 +93,8 @@ func main() {
 
 		for i := 1; i < rows; i += 2 {
 			for j := 0; j < width; j++ {
+				// TODO: get average color of the area instead
+				// of one pixel?
 				x := int(ratio * float64(j))
 				yTop := int(ratio * float64(i - 1))
 				yBottom := int(ratio * float64(i))
