@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"flag"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 	"image"
 	_ "image/gif"
@@ -118,6 +118,6 @@ func main() {
 		}
 		fh.Close()
 
-		fmt.Println("File:", path.Base(fpath), "size:", imgWidth, "x", imgHeight)
+		fmt.Println("File:", filepath.Base(fpath), "size:", imgWidth, "x", imgHeight)
 	}
 }
