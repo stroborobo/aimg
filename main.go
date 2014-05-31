@@ -36,6 +36,10 @@ func (b *Block) String() string {
 	return ret
 }
 
+func cursorUp(count int) {
+	fmt.Printf("\033[%dA", count)
+}
+
 func reset() {
 	// add a space to prevent artifacts after resizing
 	fmt.Printf("\033[0m ")
@@ -80,6 +84,7 @@ func main() {
 			fh.Close()
 			os.Exit(20)
 		}
+		fh.Close()
 
 		imgWidth := img.Bounds().Dx()
 		imgHeight := img.Bounds().Dy()
@@ -90,6 +95,11 @@ func main() {
 
 		ratio := float64(imgWidth) / float64(width)
 		rows := int(float64(imgHeight) / ratio)
+
+		for i := 1; i < rows; i += 2 {
+			fmt.Println("")
+		}
+		cursorUp(rows / 2)
 
 		for i := 1; i < rows; i += 2 {
 			for j := 0; j < width; j++ {
@@ -116,8 +126,6 @@ func main() {
 			reset()
 			fmt.Printf("\n")
 		}
-		fh.Close()
-
 		fmt.Println("File:", filepath.Base(fpath), "size:", imgWidth, "x", imgHeight)
 	}
 }
