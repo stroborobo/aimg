@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"flag"
+	flag "github.com/ogier/pflag"
 	"os"
 	"path/filepath"
 	"strings"
@@ -46,13 +46,13 @@ func reset() {
 }
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s file [file...]\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "Usage: %s file [...]\n", os.Args[0])
 	flag.PrintDefaults()
 }
 
 func main() {
 	var width int
-	flag.IntVar(&width, "w", 0, "Output width, use 0 for terminal width")
+	flag.IntVarP(&width, "width", "w", 0, "Output width, use 0 for terminal width")
 	flag.Usage = usage
 	flag.Parse()
 
