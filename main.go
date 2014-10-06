@@ -12,6 +12,7 @@ import (
 	_ "image/png"
 	"github.com/Knorkebrot/ansirgb"
 	"github.com/olekukonko/ts"
+	"github.com/monochromegane/terminal"
 )
 
 type Block struct {
@@ -97,10 +98,12 @@ func main() {
 		ratio := float64(imgWidth) / float64(cols)
 		rows := int(float64(imgHeight) / ratio)
 
-		for i := 1; i < rows; i += 2 {
-			fmt.Println("")
+		if terminal.IsTerminal(os.Stdout) {
+			for i := 1; i < rows; i += 2 {
+				fmt.Println("")
+			}
+			cursorUp(rows / 2)
 		}
-		cursorUp(rows / 2)
 
 		for i := 1; i < rows; i += 2 {
 			for j := 0; j < cols; j++ {
