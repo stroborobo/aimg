@@ -89,11 +89,12 @@ func main() {
 		imgWidth := img.Bounds().Dx()
 		imgHeight := img.Bounds().Dy()
 
-		if imgWidth < width {
-			width = imgWidth
+		cols := width
+		if imgWidth < cols {
+			cols = imgWidth
 		}
 
-		ratio := float64(imgWidth) / float64(width)
+		ratio := float64(imgWidth) / float64(cols)
 		rows := int(float64(imgHeight) / ratio)
 
 		for i := 1; i < rows; i += 2 {
@@ -102,7 +103,7 @@ func main() {
 		cursorUp(rows / 2)
 
 		for i := 1; i < rows; i += 2 {
-			for j := 0; j < width; j++ {
+			for j := 0; j < cols; j++ {
 				// TODO: get average color of the area instead
 				// of one pixel?
 				x := int(ratio * float64(j))
