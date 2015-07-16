@@ -13,7 +13,6 @@ import (
 	"github.com/Knorkebrot/ansirgb"
 	"github.com/monochromegane/terminal"
 	flag "github.com/ogier/pflag"
-	"github.com/olekukonko/ts"
 )
 
 type Block struct {
@@ -44,23 +43,9 @@ func (b *Block) String() string {
 	return ret
 }
 
-func cursorUp(count int) {
-	fmt.Printf("\033[%dA", count)
-}
-
-func reset() {
-	// add a space to prevent artifacts after resizing
-	fmt.Printf("\033[0m ")
-}
-
-func usage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s [-w width] file [file...]\n", os.Args[0])
-	flag.PrintDefaults()
-}
-
 func main() {
-	var width int
-	flag.IntVarP(&width, "width", "w", 0, "Output width, use 0 for terminal width")
+	var widthstr string
+	flag.StringVarP(&widthstr, "width", "w", "100%", "Output width. Supports column count and percentage.")
 	flag.Usage = usage
 	flag.Parse()
 
@@ -69,16 +54,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if width == 0 {
-		size, err := ts.GetSize()
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err, "\nYou may need to "+
-				"set width manually using -w num")
-			os.Exit(2)
-		}
-		width = size.Col() - 1 // -1 for the reset column
-	}
-
+	width := getColumns(widthstr) - 1 // -1 for the reset column
 	for _, fpath := range flag.Args() {
 		fh, err := os.Open(fpath)
 		if err != nil {
@@ -134,7 +110,7 @@ func main() {
 				}
 
 				if bb != nil && b.bottom.Code == bb.bottom.Code &&
-				   ((b.top == nil && bb.top == nil) || b.top != nil && bb.top != nil && b.top.Code == bb.top.Code) {
+					((b.top == nil && bb.top == nil) || b.top != nil && bb.top != nil && b.top.Code == bb.top.Code) {
 					b.nocolor = true
 				}
 
