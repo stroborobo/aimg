@@ -2,31 +2,38 @@ package main
 
 import (
 	"fmt"
-	flag "github.com/ogier/pflag"
-	"os"
-	"path/filepath"
-	"strings"
 	"image"
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/Knorkebrot/ansirgb"
-	"github.com/olekukonko/ts"
 	"github.com/monochromegane/terminal"
+	flag "github.com/ogier/pflag"
+	"github.com/olekukonko/ts"
 )
 
 type Block struct {
-	top	*ansirgb.Color
-	bottom	*ansirgb.Color
+	nocolor bool
+	top     *ansirgb.Color
+	bottom  *ansirgb.Color
 }
 
 func (b *Block) String() string {
-	ret := b.bottom.Bg()
+	ret := ""
+	if !b.nocolor {
+		ret += b.bottom.Bg()
+	}
 	if b.top != nil {
-		ret += b.top.Fg()
+		if !b.nocolor {
+			ret += b.top.Fg()
+		}
 		// If it's not a UTF-8 terminal, fall back to '#'
 		if strings.Contains(os.Getenv("LC_ALL"), "UTF-8") ||
-		   strings.Contains(os.Getenv("LANG"), "UTF-8") {
+			strings.Contains(os.Getenv("LANG"), "UTF-8") {
 			ret += "\u2580"
 		} else {
 			ret += "#"
@@ -47,7 +54,7 @@ func reset() {
 }
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s file [...]\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "Usage: %s [-w width] file [file...]\n", os.Args[0])
 	flag.PrintDefaults()
 }
 
@@ -69,7 +76,7 @@ func main() {
 				"set width manually using -w num")
 			os.Exit(2)
 		}
-		width = size.Col() - 1	// -1 for the reset column
+		width = size.Col() - 1 // -1 for the reset column
 	}
 
 	for _, fpath := range flag.Args() {
@@ -106,11 +113,12 @@ func main() {
 		}
 
 		for i := 1; i < rows; i += 2 {
+			var bb *Block
 			for j := 0; j < cols; j++ {
 				// TODO: get average color of the area instead
 				// of one pixel?
 				x := int(ratio * float64(j))
-				yTop := int(ratio * float64(i - 1))
+				yTop := int(ratio * float64(i-1))
 				yBottom := int(ratio * float64(i))
 
 				top := ansirgb.Convert(img.At(x, yTop))
@@ -124,6 +132,13 @@ func main() {
 				if top.Code != bottom.Code {
 					b.top = top
 				}
+
+				if bb != nil && b.bottom.Code == bb.bottom.Code &&
+				   ((b.top == nil && bb.top == nil) || b.top != nil && bb.top != nil && b.top.Code == bb.top.Code) {
+					b.nocolor = true
+				}
+
+				bb = b
 
 				fmt.Printf("%s", b)
 			}
