@@ -1,13 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"image"
+	"io"
 	"os"
 	"strings"
 
 	"github.com/Knorkebrot/ansirgb"
-	"github.com/monochromegane/terminal"
 )
 
 var (
@@ -27,13 +26,23 @@ type Image struct {
 	rows   int
 }
 
-func (im *Image) Parse(fpath string, cols int) error {
+func NewImage(cols int) *Image {
+	return &Image{
+		cols: cols,
+	}
+}
+
+func (im *Image) ParseFile(fpath string) error {
 	fh, err := os.Open(fpath)
 	if err != nil {
 		return err
 	}
-	img, _, err := image.Decode(fh)
-	fh.Close()
+	defer fh.Close()
+	return im.ParseReader(fh)
+}
+
+func (im *Image) ParseReader(rd io.Reader) error {
+	img, _, err := image.Decode(rd)
 	if err != nil {
 		return err
 	}
@@ -41,8 +50,7 @@ func (im *Image) Parse(fpath string, cols int) error {
 	im.Width = img.Bounds().Dx()
 	im.Height = img.Bounds().Dy()
 
-	im.cols = cols
-	if im.Width < cols {
+	if im.Width < im.cols {
 		im.cols = im.Width
 	}
 
@@ -71,23 +79,25 @@ func (im *Image) Parse(fpath string, cols int) error {
 	return nil
 }
 
-func (im *Image) PrintBlank() {
-	if terminal.IsTerminal(os.Stdout) {
-		for i := 1; i < im.rows; i += 2 {
-			fmt.Println("")
-		}
-		cursorUp(im.rows / 2)
-	}
+func (im *Image) Blank() string {
+	c := im.rows / 2
+	return strings.Repeat("\n", c)
 }
 
-func (im *Image) Print() {
+func (im *Image) BlankReset() string {
+	c := im.rows / 2
+	return strings.Repeat("\n", c) + cursorUp(c)
+}
+
+func (im *Image) String() string {
+	ret := ""
 	for i, b := range im.blocks {
 		if i > 0 && i%(im.cols-1) == 0 {
-			newLine()
+			ret += newLine()
 		}
-		fmt.Print(b)
+		ret += b.String()
 	}
-	newLine()
+	return ret + newLine()
 }
 
 type Block struct {

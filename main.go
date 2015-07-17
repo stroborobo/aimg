@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/monochromegane/terminal"
 	flag "github.com/ogier/pflag"
 )
 
@@ -24,11 +25,13 @@ func main() {
 
 	width := getColumns(widthstr) - 1 // -1 for the reset column
 	for _, fpath := range flag.Args() {
-		im := &Image{}
-		handleErr(im.Parse(fpath, width))
+		im := NewImage(width)
+		handleErr(im.ParseFile(fpath))
 
-		im.PrintBlank()
-		im.Print()
+		if terminal.IsTerminal(os.Stdout) {
+			fmt.Print(im.BlankReset())
+		}
+		fmt.Print(im)
 
 		fmt.Println("File:", filepath.Base(fpath), "size:", im.Width, "x", im.Height)
 	}
