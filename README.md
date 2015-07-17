@@ -16,8 +16,8 @@ As a package: see [GoDoc][gd]
 As a command:
 
 	> aimg -h
-	Usage: aimg file [file...]
-	  -w=0: Output width, use 0 for terminal width
+	Usage: aimg [-w (num | num% | .num) ] file [file...]
+	  -w, --width="100%": Output width. Supports column count, percentage and decimals.
 
 ![screenshot](screenshot.jpg)
 

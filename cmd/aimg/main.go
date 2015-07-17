@@ -12,7 +12,8 @@ import (
 
 func main() {
 	var widthstr string
-	flag.StringVarP(&widthstr, "width", "w", "100%", "Output width. Supports column count and percentage.")
+	flag.StringVarP(&widthstr, "width", "w", "100%",
+		"Output width. Supports column count, percentage and decimals.")
 	flag.Usage = usage
 	flag.Parse()
 

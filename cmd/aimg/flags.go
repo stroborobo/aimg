@@ -11,7 +11,7 @@ import (
 )
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s [-w width] file [file...]\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "Usage: %s [-w (num | num%% | .num) ] file [file...]\n", os.Args[0])
 	flag.PrintDefaults()
 }
 
