@@ -50,8 +50,8 @@ func getColumns(widthstr string) int {
 
 	size, err := ts.GetSize()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err, "\nYou may need to "+
-			"set width manually using -w num")
+		fmt.Fprintln(os.Stderr, "Can't get terminal size.\n"+
+			"You may need to set width manually using -w num")
 		os.Exit(2)
 	}
 
