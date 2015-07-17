@@ -1,7 +1,10 @@
-package main
+package aimg
 
 import (
 	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 	"os"
 	"strings"

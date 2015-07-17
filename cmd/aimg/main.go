@@ -2,12 +2,10 @@ package main
 
 import (
 	"fmt"
-	_ "image/gif"
-	_ "image/jpeg"
-	_ "image/png"
 	"os"
 	"path/filepath"
 
+	"github.com/Knorkebrot/aimg"
 	"github.com/monochromegane/terminal"
 	flag "github.com/ogier/pflag"
 )
@@ -25,7 +23,7 @@ func main() {
 
 	width := getColumns(widthstr) - 1 // -1 for the reset column
 	for _, fpath := range flag.Args() {
-		im := NewImage(width)
+		im := aimg.NewImage(width)
 		handleErr(im.ParseFile(fpath))
 
 		if terminal.IsTerminal(os.Stdout) {
