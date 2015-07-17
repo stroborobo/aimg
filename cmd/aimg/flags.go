@@ -1,12 +1,12 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
 
+	flag "github.com/ogier/pflag"
 	"github.com/olekukonko/ts"
 )
 
