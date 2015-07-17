@@ -2,12 +2,14 @@ package aimg
 
 import (
 	"image"
-	_ "image/gif"
-	_ "image/jpeg"
-	_ "image/png"
 	"io"
 	"os"
 	"strings"
+
+	// supporting these files types
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 
 	"github.com/Knorkebrot/ansirgb"
 )
@@ -21,20 +23,27 @@ func init() {
 		strings.Contains(os.Getenv("LANG"), "UTF-8")
 }
 
+// Image represents an ANSI color code "image"
 type Image struct {
 	blocks []*Block
-	Width  int // actual size
+
+	// actual size
+	Width  int
 	Height int
-	cols   int // display size
-	rows   int
+
+	// display size
+	cols int
+	rows int
 }
 
+// NewImage returns an Image that will parse and print for a given width of columns
 func NewImage(cols int) *Image {
 	return &Image{
 		cols: cols,
 	}
 }
 
+// ParseFile is a shorthand for os.Open() and ParseReader()
 func (im *Image) ParseFile(fpath string) error {
 	fh, err := os.Open(fpath)
 	if err != nil {
@@ -44,6 +53,7 @@ func (im *Image) ParseFile(fpath string) error {
 	return im.ParseReader(fh)
 }
 
+// ParseReader reads image data from the reader and decodes it into Blocks
 func (im *Image) ParseReader(rd io.Reader) error {
 	img, _, err := image.Decode(rd)
 	if err != nil {
@@ -67,8 +77,8 @@ func (im *Image) ParseReader(rd io.Reader) error {
 			yb := int(ratio * float64(r))
 
 			b := &Block{
-				top:    ansirgb.Convert(img.At(x, yt)),
-				bottom: ansirgb.Convert(img.At(x, yb)),
+				Top:    ansirgb.Convert(img.At(x, yt)),
+				Bottom: ansirgb.Convert(img.At(x, yb)),
 			}
 
 			if c > 1 {
@@ -82,16 +92,20 @@ func (im *Image) ParseReader(rd io.Reader) error {
 	return nil
 }
 
+// Blank returns a string containing as many newlines as needed to display the
+// image.
 func (im *Image) Blank() string {
-	c := im.rows / 2
-	return strings.Repeat("\n", c)
+	return strings.Repeat("\n", im.rows/2)
 }
 
+// BlankReset returns a string like Blank() but with an escape code to set the
+// cursor to the first of the previous newlines.
 func (im *Image) BlankReset() string {
-	c := im.rows / 2
-	return strings.Repeat("\n", c) + cursorUp(c)
+	ret := im.Blank()
+	return ret + cursorUp(len(ret))
 }
 
+// String returns the Image's string representation.
 func (im *Image) String() string {
 	ret := ""
 	for i, b := range im.blocks {
@@ -103,23 +117,29 @@ func (im *Image) String() string {
 	return ret + newLine()
 }
 
+// Block represents two pixels or a character in a string. It contains a
+// Unicode UPPER HALF BLOCK, so the top "pixel" is the foreground color and the
+// bottom "pixel" is the background color.
 type Block struct {
 	nocolor bool
-	top     *ansirgb.Color
-	bottom  *ansirgb.Color
+	Top     *ansirgb.Color
+	Bottom  *ansirgb.Color
 }
 
+// String returns the string representation of the block. If aimg can't
+// determine whether this is a UTF-8 environment, String will use a '#' instead
+// of the UPPER HALF BLOCK.
 func (b *Block) String() string {
 	if b.nocolor {
 		return " "
 	}
 
-	ret := b.bottom.Bg()
+	ret := b.Bottom.Bg()
 
 	// Foreground colors are lighter in some terminals.
 	// Ignore top (FG) if it's the same color anyway
-	if b.top.Code != b.bottom.Code {
-		ret += b.top.Fg()
+	if b.Top.Code != b.Bottom.Code {
+		ret += b.Top.Fg()
 		// If it's not a UTF-8 terminal, fall back to '#'
 		if isUTF8 {
 			ret += "\u2580"
@@ -134,5 +154,5 @@ func (b *Block) String() string {
 }
 
 func (b *Block) equals(b2 *Block) bool {
-	return b.bottom.Code == b2.bottom.Code && b.top.Code == b2.top.Code
+	return b.Bottom.Code == b2.Bottom.Code && b.Top.Code == b2.Top.Code
 }
