@@ -29,7 +29,7 @@ func main() {
 		if terminal.IsTerminal(os.Stdout) {
 			fmt.Print(im.BlankReset())
 		}
-		fmt.Print(im)
+		im.WriteTo(os.Stdout)
 
 		w, h := im.ActualSize()
 		fmt.Println("File:", filepath.Base(fpath), "size:", w, "x", h)

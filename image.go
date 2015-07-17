@@ -1,6 +1,7 @@
 package aimg
 
 import (
+	"bytes"
 	"image"
 	"io"
 	"os"
@@ -25,7 +26,7 @@ func init() {
 
 // Image represents an ANSI color code "image"
 type Image struct {
-	blocks []*Block
+	im image.Image
 
 	// actual size
 	width  int
@@ -34,6 +35,10 @@ type Image struct {
 	// display size
 	cols int
 	rows int
+
+	ratio float64
+
+	readIndex int
 }
 
 // NewImage returns an Image that will parse and print for a given width of
@@ -66,40 +71,22 @@ func (im *Image) ParseFile(fpath string) error {
 
 // ParseReader reads image data from the reader and decodes it into Blocks.
 func (im *Image) ParseReader(rd io.Reader) error {
-	img, _, err := image.Decode(rd)
-	if err != nil {
+	if img, _, err := image.Decode(rd); err != nil {
 		return err
+	} else {
+		im.im = img
 	}
 
-	im.width = img.Bounds().Dx()
-	im.height = img.Bounds().Dy()
+	im.width = im.im.Bounds().Dx()
+	im.height = im.im.Bounds().Dy()
 
 	if im.width < im.cols {
 		im.cols = im.width
 	}
 
-	ratio := float64(im.width) / float64(im.cols)
-	im.rows = int(float64(im.height) / ratio)
+	im.ratio = float64(im.width) / float64(im.cols)
+	im.rows = int(float64(im.height) / im.ratio)
 
-	for r := 1; r < im.rows; r += 2 {
-		for c := 1; c < im.cols; c++ {
-			x := int(ratio * float64(c))
-			yt := int(ratio * float64(r-1))
-			yb := int(ratio * float64(r))
-
-			b := &Block{
-				Top:    ansirgb.Convert(img.At(x, yt)),
-				Bottom: ansirgb.Convert(img.At(x, yb)),
-			}
-
-			if c > 1 {
-				before := im.blocks[len(im.blocks)-1]
-				b.nocolor = b.equals(before)
-			}
-
-			im.blocks = append(im.blocks, b)
-		}
-	}
 	return nil
 }
 
@@ -116,16 +103,47 @@ func (im *Image) BlankReset() string {
 	return ret + cursorUp(len(ret))
 }
 
-// String returns the Image's string representation.
-func (im *Image) String() string {
-	ret := ""
-	for i, b := range im.blocks {
-		if i > 0 && i%(im.cols-1) == 0 {
-			ret += newLine()
+// WriteTo writes the image data to wr.
+func (im *Image) WriteTo(wr io.Writer) (int, error) {
+	written := 0
+	for r := 1; r < im.rows; r += 2 {
+		var before *Block
+		for c := 1; c < im.cols; c++ {
+			x := int(im.ratio * float64(c))
+			yt := int(im.ratio * float64(r-1))
+			yb := int(im.ratio * float64(r))
+
+			b := &Block{
+				Top:    ansirgb.Convert(im.im.At(x, yt)),
+				Bottom: ansirgb.Convert(im.im.At(x, yb)),
+			}
+
+			if before != nil {
+				b.nocolor = b.equals(before)
+			}
+			before = b
+
+			n, err := io.WriteString(wr, b.String())
+			written += n
+			if err != nil {
+				return written, err
+			}
 		}
-		ret += b.String()
+		n, err := io.WriteString(wr, newLine())
+		written += n
+		if err != nil {
+			return written, err
+		}
 	}
-	return ret + newLine()
+	return written, nil
+}
+
+// String returns the Image's string representation. It's a shorthand to
+// WriteTo() using a bytes.Buffer and buf.String().
+func (im *Image) String() string {
+	buf := &bytes.Buffer{}
+	im.WriteTo(buf)
+	return buf.String()
 }
 
 // Block represents two pixels or a character in a string. It contains a
