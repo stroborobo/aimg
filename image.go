@@ -28,22 +28,33 @@ type Image struct {
 	blocks []*Block
 
 	// actual size
-	Width  int
-	Height int
+	width  int
+	height int
 
 	// display size
 	cols int
 	rows int
 }
 
-// NewImage returns an Image that will parse and print for a given width of columns
+// NewImage returns an Image that will parse and print for a given width of
+// columns.
 func NewImage(cols int) *Image {
 	return &Image{
 		cols: cols,
 	}
 }
 
-// ParseFile is a shorthand for os.Open() and ParseReader()
+// Size returns the resulting size in columns and rows.
+func (im *Image) Size() (rows, cols int) {
+	return im.cols, im.rows / 2
+}
+
+// ActualSize returns the size of the underlying image.
+func (im *Image) ActualSize() (height, width int) {
+	return im.width, im.height
+}
+
+// ParseFile is a shorthand for os.Open() and ParseReader().
 func (im *Image) ParseFile(fpath string) error {
 	fh, err := os.Open(fpath)
 	if err != nil {
@@ -53,22 +64,22 @@ func (im *Image) ParseFile(fpath string) error {
 	return im.ParseReader(fh)
 }
 
-// ParseReader reads image data from the reader and decodes it into Blocks
+// ParseReader reads image data from the reader and decodes it into Blocks.
 func (im *Image) ParseReader(rd io.Reader) error {
 	img, _, err := image.Decode(rd)
 	if err != nil {
 		return err
 	}
 
-	im.Width = img.Bounds().Dx()
-	im.Height = img.Bounds().Dy()
+	im.width = img.Bounds().Dx()
+	im.height = img.Bounds().Dy()
 
-	if im.Width < im.cols {
-		im.cols = im.Width
+	if im.width < im.cols {
+		im.cols = im.width
 	}
 
-	ratio := float64(im.Width) / float64(im.cols)
-	im.rows = int(float64(im.Height) / ratio)
+	ratio := float64(im.width) / float64(im.cols)
+	im.rows = int(float64(im.height) / ratio)
 
 	for r := 1; r < im.rows; r += 2 {
 		for c := 1; c < im.cols; c++ {

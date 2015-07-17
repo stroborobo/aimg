@@ -31,6 +31,7 @@ func main() {
 		}
 		fmt.Print(im)
 
-		fmt.Println("File:", filepath.Base(fpath), "size:", im.Width, "x", im.Height)
+		w, h := im.ActualSize()
+		fmt.Println("File:", filepath.Base(fpath), "size:", w, "x", h)
 	}
 }
