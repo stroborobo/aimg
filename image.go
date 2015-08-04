@@ -69,7 +69,7 @@ func (im *Image) ParseFile(fpath string) error {
 	return im.ParseReader(fh)
 }
 
-// ParseReader reads image data from the reader and decodes it into Blocks.
+// ParseReader reads image data from the reader.
 func (im *Image) ParseReader(rd io.Reader) error {
 	if img, _, err := image.Decode(rd); err != nil {
 		return err
