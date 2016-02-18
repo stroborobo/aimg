@@ -5,9 +5,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/Knorkebrot/aimg"
 	"github.com/monochromegane/terminal"
 	flag "github.com/ogier/pflag"
+	"github.com/stroborobo/aimg"
 )
 
 func main() {

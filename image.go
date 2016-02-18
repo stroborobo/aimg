@@ -12,7 +12,7 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 
-	"github.com/Knorkebrot/ansirgb"
+	"github.com/stroborobo/ansirgb"
 )
 
 var (

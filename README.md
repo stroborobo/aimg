@@ -1,7 +1,7 @@
 aimg
 ====
 
-[![GoDoc](https://godoc.org/github.com/Knorkebrot/aimg?status.svg)][gd]
+[![GoDoc](https://godoc.org/github.com/stroborobo/aimg?status.svg)][gd]
 
 A package to convert images to ANSI color coded text. `aimg` uses
 unicode UPPER HALF BLOCK to archieve twice the pixels (tm) per
@@ -25,7 +25,7 @@ As a command:
 Get the cli tool
 ----------------
 
-	> go get github.com/Knorkebrot/aimg/cmd/aimg
+	> go get github.com/stroborobo/aimg/cmd/aimg
 
 That's it :)
 
@@ -34,4 +34,4 @@ That's it :)
 Inspired by [minikomi's ansipix][ap].
 
 [ap]: https://github.com/minikomi/ansipix
-[gd]: https://godoc.org/github.com/Knorkebrot/aimg
+[gd]: https://godoc.org/github.com/stroborobo/aimg
