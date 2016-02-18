@@ -106,12 +106,12 @@ func (im *Image) BlankReset() string {
 // WriteTo writes the image data to wr.
 func (im *Image) WriteTo(wr io.Writer) (int, error) {
 	written := 0
-	for r := 1; r < im.rows; r += 2 {
+	for r := 0; r < im.rows; r += 2 {
 		var before *Block
-		for c := 1; c < im.cols; c++ {
+		for c := 0; c < im.cols; c++ {
 			x := int(im.ratio * float64(c))
-			yt := int(im.ratio * float64(r-1))
-			yb := int(im.ratio * float64(r))
+			yt := int(im.ratio * float64(r))
+			yb := int(im.ratio * float64(r+1))
 
 			b := &Block{
 				Top:    im.getColor(x, yt),
@@ -170,10 +170,6 @@ type Block struct {
 // of the LOWER/UPPER HALF BLOCK. If the block's color is equal to the one
 // before, it'll just return a string containing a single space.
 func (b *Block) String() string {
-	if b.nocolor {
-		return " "
-	}
-
 	// By default top is background, bottom foreground, using
 	// LOWER HALF BLOCK.
 	first := b.Top
@@ -188,12 +184,17 @@ func (b *Block) String() string {
 		block = "\u2580"
 	}
 
-	ret := first.Bg()
+	ret := ""
+	if !b.nocolor {
+		ret += first.Bg()
+	}
 
 	// Foreground colors are lighter in some terminals. Also "transparent"
 	// foreground is not a thing.  Ignore it if it's the same color anyway.
 	if !first.Equals(second) {
-		ret += second.Fg()
+		if !b.nocolor {
+			ret += second.Fg()
+		}
 		// If it's not a UTF-8 terminal, fall back to '#'
 		if isUTF8 {
 			ret += block
