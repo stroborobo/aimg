@@ -114,8 +114,8 @@ func (im *Image) WriteTo(wr io.Writer) (int, error) {
 			yb := int(im.ratio * float64(r))
 
 			b := &Block{
-				Top:    ansirgb.Convert(im.im.At(x, yt)),
-				Bottom: ansirgb.Convert(im.im.At(x, yb)),
+				Top:    im.getColor(x, yt),
+				Bottom: im.getColor(x, yb),
 			}
 
 			if before != nil {
@@ -138,6 +138,14 @@ func (im *Image) WriteTo(wr io.Writer) (int, error) {
 	return written, nil
 }
 
+func (im *Image) getColor(x, y int) *ansirgb.Color {
+	c := im.im.At(x, y)
+	if _, _, _, a := c.RGBA(); a < 1<<14-1 {
+		return &ansirgb.Color{c, -1} // default/transparent color
+	}
+	return ansirgb.Convert(c)
+}
+
 // String returns the Image's string representation. It's a shorthand to
 // WriteTo() using a bytes.Buffer and buf.String().
 func (im *Image) String() string {
@@ -147,8 +155,10 @@ func (im *Image) String() string {
 }
 
 // Block represents two pixels or a character in a string. It contains a
-// Unicode UPPER HALF BLOCK, so the top "pixel" is the foreground color and the
-// bottom "pixel" is the background color.
+// Unicode LOWER/UPPER HALF BLOCK, so the top or bottom "pixel" is the
+// foreground color and the other one is the background color.
+// The character used might change if transparency is needed, which is only
+// possible by using the default background color.
 type Block struct {
 	nocolor bool
 	Top     *ansirgb.Color
@@ -157,21 +167,36 @@ type Block struct {
 
 // String returns the string representation of the block. If aimg can't
 // determine whether this is a UTF-8 environment, String will use a '#' instead
-// of the UPPER HALF BLOCK.
+// of the LOWER/UPPER HALF BLOCK. If the block's color is equal to the one
+// before, it'll just return a string containing a single space.
 func (b *Block) String() string {
 	if b.nocolor {
 		return " "
 	}
 
-	ret := b.Bottom.Bg()
+	// By default top is background, bottom foreground, using
+	// LOWER HALF BLOCK.
+	first := b.Top
+	second := b.Bottom
+	block := "\u2584"
 
-	// Foreground colors are lighter in some terminals.
-	// Ignore top (FG) if it's the same color anyway
-	if b.Top.Code != b.Bottom.Code {
-		ret += b.Top.Fg()
+	// If the bottom is transparent however switch them all
+	// since transparency can only be archieved by using the default
+	// background color.
+	if b.Bottom.IsTransparent() {
+		first, second = second, first
+		block = "\u2580"
+	}
+
+	ret := first.Bg()
+
+	// Foreground colors are lighter in some terminals. Also "transparent"
+	// foreground is not a thing.  Ignore it if it's the same color anyway.
+	if !first.Equals(second) {
+		ret += second.Fg()
 		// If it's not a UTF-8 terminal, fall back to '#'
 		if isUTF8 {
-			ret += "\u2580"
+			ret += block
 		} else {
 			ret += "#"
 		}
