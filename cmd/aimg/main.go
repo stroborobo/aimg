@@ -18,8 +18,11 @@ func usage() {
 
 func main() {
 	var widthstr string
+	var noInfo bool
 	flag.StringVarP(&widthstr, "width", "w", "100%",
 		"Output width. Supports column count or percentage and decimals relative to the terminal's width")
+	flag.BoolVarP(&noInfo, "no-info", "n", false,
+		"Don't output the file info line in the end.")
 	flag.Usage = usage
 	flag.Parse()
 
@@ -44,7 +47,9 @@ func main() {
 		}
 		im.WriteTo(os.Stdout)
 
-		w, h := im.ActualSize()
-		fmt.Println("File:", filepath.Base(fpath), "size:", w, "x", h)
+		if !noInfo {
+			w, h := im.ActualSize()
+			fmt.Println("File:", filepath.Base(fpath), "size:", w, "x", h)
+		}
 	}
 }
