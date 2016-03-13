@@ -12,6 +12,7 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 
+	"github.com/stroborobo/aimg/terminal"
 	"github.com/stroborobo/ansirgb"
 )
 
@@ -100,7 +101,7 @@ func (im *Image) Blank() string {
 // cursor to the first of the previous newlines.
 func (im *Image) BlankReset() string {
 	ret := im.Blank()
-	return ret + cursorUp(len(ret))
+	return ret + terminal.CursorUp(len(ret))
 }
 
 // WriteTo writes the image data to wr.
@@ -129,7 +130,7 @@ func (im *Image) WriteTo(wr io.Writer) (int, error) {
 				return written, err
 			}
 		}
-		n, err := io.WriteString(wr, newLine())
+		n, err := io.WriteString(wr, terminal.NewLine())
 		written += n
 		if err != nil {
 			return written, err
@@ -209,5 +210,5 @@ func (b *Block) String() string {
 }
 
 func (b *Block) equals(b2 *Block) bool {
-	return b.Bottom.Code == b2.Bottom.Code && b.Top.Code == b2.Top.Code
+	return b.Bottom.Equals(b2.Bottom) && b.Top.Equals(b2.Top)
 }
